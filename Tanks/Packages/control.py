@@ -1,6 +1,6 @@
-import keyboard
-from rendering import render
-from field_creating import create_field
+# import keyboard
+# from rendering import render
+# from field_creating import create_field
 # Временная абсолютная ссылка для проверки работоспособности этого модуля отдельно от других
 
 # from .rendering import render
@@ -9,8 +9,11 @@ from field_creating import create_field
 # __init__.py не обязателен (version Python 3.3 and more), создан только чтобы не раздражать PyCharm
 
 
-test_field = create_field()
-
-
-def passing():
-    render(test_field)
+def control_signal() -> str:
+    """
+        Ожидает нажатия игроком управляющих клавиш.
+        После нажатия возвращает символ, введенный игроком.
+    """
+    signal = input('Движение осуществляется на клавиши W A S D:\n /' +
+                   'Ходите!\n')
+    return signal
