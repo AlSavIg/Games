@@ -1,4 +1,5 @@
 from .field_creating import create_field
+import os
 # from .control import control_signal
 # from field_creating import create_field
 
@@ -47,7 +48,14 @@ def tank_move(playing_field: tuple, player_turn: str) -> tuple:
             playing_field = create_field(field_len,
                                          field_wid,
                                          (CURRENT_HEAD_POS['i'], CURRENT_HEAD_POS['j']))
-    else:
-        print('WRONG TURN')
+    # else:
+    #     print('WRONG TURN')
 
     return playing_field
+
+
+def clear_window() -> None:
+    """
+        Очищает окно для начала отрисовки следующего кадра.
+    """
+    os.system('cls')
