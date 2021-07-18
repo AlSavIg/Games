@@ -1,5 +1,5 @@
-from .field_creating import create_field
 import os
+from .field_creating import create_field
 from .constants import START_HEAD_POS, DIRECTIONS
 # from .control import control_signal
 # from field_creating import create_field
@@ -38,9 +38,9 @@ def tank_move(playing_field: tuple, player_turn: str) -> tuple:
     field_len = len(playing_field[0])
     field_wid = len(playing_field)
     current_head_pos = head_move(player_turn, current_head_pos)
-    playing_field = create_field(current_head_pos,
-                                 field_len,
-                                 field_wid)
+    playing_field = create_field(field_len,
+                                 field_wid,
+                                 current_head_pos)
     # else:
     #     print('WRONG TURN')
 
