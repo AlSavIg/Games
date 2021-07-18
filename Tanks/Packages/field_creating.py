@@ -1,4 +1,4 @@
-from .constants import START_HEAD_POS
+from .constants import START_HEAD_POS, DIRECTIONS
 
 
 def make_tank(length: int, width: int, head_pos: dict) -> set:
@@ -14,7 +14,22 @@ def make_tank(length: int, width: int, head_pos: dict) -> set:
     i, j, eye_direct = head_pos['i'], head_pos['j'], head_pos['eye_direct']
     tank_coordinates = {(i, j)}
 
-
+    if eye_direct == DIRECTIONS['straight']:
+        for k in range(i + 1, i + 4):
+            for z in range(j - 1, j + 2):
+                tank_coordinates.add((k % width, z % length))
+    elif eye_direct == DIRECTIONS['right']:
+        for k in range(i - 1, i + 2):
+            for z in range(j - 3, j):
+                tank_coordinates.add((k % width, z % length))
+    elif eye_direct == DIRECTIONS['back']:
+        for k in range(i - 3, i):
+            for z in range(j + 1, j):
+                tank_coordinates.add((k % width, z % length))
+    elif eye_direct == DIRECTIONS['left']:
+        for k in range(i - 1, i + 2):
+            for z in range(j + 1, j + 4):
+                tank_coordinates.add((k % width, z % length))
 
     return tank_coordinates
 
