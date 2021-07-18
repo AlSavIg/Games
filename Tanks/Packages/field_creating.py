@@ -12,7 +12,7 @@ def make_tank(length: int, width: int, head_pos: dict) -> set:
             танк появится с противоположной стороны.
     """
     i, j, eye_direct = head_pos['i'], head_pos['j'], head_pos['eye_direct']
-    tank_coordinates = set()
+    tank_coordinates = {(i, j)}
 
 
 

@@ -7,23 +7,66 @@ from .constants import START_HEAD_POS, DIRECTIONS
 current_head_pos = START_HEAD_POS.copy()
 
 
-def head_move(player_turn: str, head_pos: dict) -> dict:
+def head_move(player_turn: str,
+              head_pos: dict,
+              length: int,
+              width: int) -> dict:
     """
-        Принимает на вход ход игрока и текущее положение 'дула' ('head') танка.
+        Принимает на вход ход игрока и текущее положение 'дула' ('head') танка,
+        а также длину и ширину игрового поля во избежании пересечения его границ.
         Возвращает новое положение 'дула' ('head') танка.
+
+        ТРЕБУЕТ ПЕРЕРАБОТКИ, А ИМЕННО РАЗБИЕНИЯ НА НАБОР МАЛЕНЬКИХ ФУНКЦИЙ (ПОВОРОТА
+        В ДВУМЕРНОМ ДЕКАРТОВОМ ПРОСТРАНСТВЕ).
     """
     if player_turn == DIRECTIONS['straight']:
         if head_pos['eye_direct'] == DIRECTIONS['straight']:
             head_pos['i'] -= 1
+        elif head_pos['eye_direct'] == DIRECTIONS['right']:
+            head_pos['i'] = (head_pos['i'] - 2) % width
+            head_pos['j'] = (head_pos['j'] - 2) % length
+        elif head_pos['eye_direct'] == DIRECTIONS['back']:
+            pass
+        elif head_pos['eye_direct'] == DIRECTIONS['left']:
+            head_pos['i'] = (head_pos['i'] - 2) % width
+            head_pos['j'] = (head_pos['j'] + 2) % length
+        head_pos['eye_direct'] = DIRECTIONS['straight']
     elif player_turn == DIRECTIONS['right']:
         if head_pos['eye_direct'] == DIRECTIONS['right']:
             head_pos['j'] += 1
+        elif head_pos['eye_direct'] == DIRECTIONS['straight']:
+            head_pos['i'] = (head_pos['i'] + 2) % width
+            head_pos['j'] = (head_pos['j'] + 2) % length
+        elif head_pos['eye_direct'] == DIRECTIONS['left']:
+            pass
+        elif head_pos['eye_direct'] == DIRECTIONS['back']:
+            head_pos['i'] = (head_pos['i'] - 2) % width
+            head_pos['j'] = (head_pos['j'] + 2) % length
+        head_pos['eye_direct'] = DIRECTIONS['right']
     elif player_turn == DIRECTIONS['back']:
         if head_pos['eye_direct'] == DIRECTIONS['back']:
             head_pos['i'] += 1
+        elif head_pos['eye_direct'] == DIRECTIONS['right']:
+            head_pos['i'] = (head_pos['i'] + 2) % width
+            head_pos['j'] = (head_pos['j'] - 2) % length
+        elif head_pos['eye_direct'] == DIRECTIONS['straight']:
+            pass
+        elif head_pos['eye_direct'] == DIRECTIONS['left']:
+            head_pos['i'] = (head_pos['i'] + 2) % width
+            head_pos['j'] = (head_pos['j'] + 2) % length
+        head_pos['eye_direct'] = DIRECTIONS['back']
     elif player_turn == DIRECTIONS['left']:
         if head_pos['eye_direct'] == DIRECTIONS['left']:
             head_pos['j'] -= 1
+        elif head_pos['eye_direct'] == DIRECTIONS['straight']:
+            head_pos['i'] = (head_pos['i'] + 2) % width
+            head_pos['j'] = (head_pos['j'] - 2) % length
+        elif head_pos['eye_direct'] == DIRECTIONS['right']:
+            pass
+        elif head_pos['eye_direct'] == DIRECTIONS['back']:
+            head_pos['i'] = (head_pos['i'] - 2) % width
+            head_pos['j'] = (head_pos['j'] - 2) % length
+        head_pos['eye_direct'] = DIRECTIONS['left']
 
     return head_pos
 
@@ -37,7 +80,10 @@ def tank_move(playing_field: tuple, player_turn: str) -> tuple:
     global current_head_pos
     field_len = len(playing_field[0])
     field_wid = len(playing_field)
-    current_head_pos = head_move(player_turn, current_head_pos)
+    current_head_pos = head_move(player_turn,
+                                 current_head_pos,
+                                 field_len,
+                                 field_wid)
     playing_field = create_field(field_len,
                                  field_wid,
                                  current_head_pos)
