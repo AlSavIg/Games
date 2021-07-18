@@ -1,7 +1,5 @@
 from termcolor import cprint
-
-
-PIXEL_SIZE = 2
+from .constants import PIXEL_SIZE
 
 
 def colorize(color: int) -> None:

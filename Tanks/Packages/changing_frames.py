@@ -1,18 +1,31 @@
 from .field_creating import create_field
 import os
+from .constants import START_HEAD_POS, DIRECTIONS
 # from .control import control_signal
 # from field_creating import create_field
 
+current_head_pos = START_HEAD_POS.copy()
 
-ACCEPTABLE_MOVES = {'straight': 'w',
-                    'left': 'a',
-                    'back': 's',
-                    'right': 'd'}
-# Doesn't depend on the current 'head' position
-CURRENT_HEAD_POS = {'i': 1,
-                    'j': 3,
-                    'eyeliner': 'd'}
-# i, j or y, x (according to school program)
+
+def head_move(player_turn: str, head_pos: dict) -> dict:
+    """
+        Принимает на вход ход игрока и текущее положение 'дула' ('head') танка.
+        Возвращает новое положение 'дула' ('head') танка.
+    """
+    if player_turn == DIRECTIONS['straight']:
+        if head_pos['eye_direct'] == DIRECTIONS['straight']:
+            head_pos['i'] -= 1
+    elif player_turn == DIRECTIONS['right']:
+        if head_pos['eye_direct'] == DIRECTIONS['right']:
+            head_pos['j'] += 1
+    elif player_turn == DIRECTIONS['back']:
+        if head_pos['eye_direct'] == DIRECTIONS['back']:
+            head_pos['i'] += 1
+    elif player_turn == DIRECTIONS['left']:
+        if head_pos['eye_direct'] == DIRECTIONS['left']:
+            head_pos['j'] -= 1
+
+    return head_pos
 
 
 def tank_move(playing_field: tuple, player_turn: str) -> tuple:
@@ -21,33 +34,13 @@ def tank_move(playing_field: tuple, player_turn: str) -> tuple:
         после чего вносит в игровое поле изменения в соответствии со сделанным ходом,
         возвращая в итоге новое, измененное состояние игрового поля для отрисовки (вывода).
     """
-    global CURRENT_HEAD_POS
+    global current_head_pos
     field_len = len(playing_field[0])
     field_wid = len(playing_field)
-    if player_turn == ACCEPTABLE_MOVES['straight']:
-        if CURRENT_HEAD_POS['eyeliner'] == ACCEPTABLE_MOVES['straight']:
-            CURRENT_HEAD_POS['i'] -= 1
-            playing_field = create_field(field_len,
-                                         field_wid,
-                                         (CURRENT_HEAD_POS['i'], CURRENT_HEAD_POS['j']))
-    elif player_turn == ACCEPTABLE_MOVES['left']:
-        if CURRENT_HEAD_POS['eyeliner'] == ACCEPTABLE_MOVES['left']:
-            CURRENT_HEAD_POS['j'] -= 1
-            playing_field = create_field(field_len,
-                                         field_wid,
-                                         (CURRENT_HEAD_POS['i'], CURRENT_HEAD_POS['j']))
-    elif player_turn == ACCEPTABLE_MOVES['back']:
-        if CURRENT_HEAD_POS['eyeliner'] == ACCEPTABLE_MOVES['back']:
-            CURRENT_HEAD_POS['i'] += 1
-            playing_field = create_field(field_len,
-                                         field_wid,
-                                         (CURRENT_HEAD_POS['i'], CURRENT_HEAD_POS['j']))
-    elif player_turn == ACCEPTABLE_MOVES['right']:
-        if CURRENT_HEAD_POS['eyeliner'] == ACCEPTABLE_MOVES['right']:
-            CURRENT_HEAD_POS['j'] += 1
-            playing_field = create_field(field_len,
-                                         field_wid,
-                                         (CURRENT_HEAD_POS['i'], CURRENT_HEAD_POS['j']))
+    current_head_pos = head_move(player_turn, current_head_pos)
+    playing_field = create_field(current_head_pos,
+                                 field_len,
+                                 field_wid)
     # else:
     #     print('WRONG TURN')
 

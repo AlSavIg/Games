@@ -17,14 +17,16 @@ def start_game() -> None:
         Позволяет собрать все функции всех модулей воедино и начать игру.
     """
     game_field = create_field()
-    player_turn = ''
 
-    while player_turn != 'q':
+    while True:
         render(game_field)
         print('\n')
         player_turn = control_signal()
         game_field = tank_move(game_field, player_turn)
         clear_window()
+        if player_turn == 'q':
+            print('GAME OVER')
+            break
 
 
 start_game()
