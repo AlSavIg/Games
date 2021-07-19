@@ -35,4 +35,4 @@ def render(playing_field: tuple) -> None:
         for column in row:
             colorize(column)
         print()
-
+    print('\n')
