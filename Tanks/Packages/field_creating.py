@@ -22,9 +22,7 @@ def create_field(player_turn='',
     global current_head_pos
 
     current_head_pos = head_move(player_turn,
-                                 current_head_pos,
-                                 length,
-                                 width)
+                                 current_head_pos)
 
     tank_coord = make_tank(length,
                            width,
