@@ -24,7 +24,7 @@ def make_tank(length: int, width: int, head_pos: dict) -> set:
                 tank_coordinates.add((k % width, z % length))
     elif eye_direct == DIRECTIONS['back']:
         for k in range(i - 3, i):
-            for z in range(j + 1, j):
+            for z in range(j - 1, j + 2):
                 tank_coordinates.add((k % width, z % length))
     elif eye_direct == DIRECTIONS['left']:
         for k in range(i - 1, i + 2):
