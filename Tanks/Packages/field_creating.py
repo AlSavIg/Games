@@ -1,7 +1,6 @@
 from .constants import START_HEAD_POS
 from .calc_pos_of_objects import make_tank, head_move
 
-
 current_head_pos = START_HEAD_POS.copy()
 
 

@@ -20,7 +20,7 @@ def head_move(player_turn: str,
             head_pos['i'] = (head_pos['i'] - 2) % width
             head_pos['j'] = (head_pos['j'] - 2) % length
         elif head_pos['eye_direct'] == DIRECTIONS['back']:
-            return head_pos
+            head_pos['i'] -= 4
         elif head_pos['eye_direct'] == DIRECTIONS['left']:
             head_pos['i'] = (head_pos['i'] - 2) % width
             head_pos['j'] = (head_pos['j'] + 2) % length
@@ -32,7 +32,7 @@ def head_move(player_turn: str,
             head_pos['i'] = (head_pos['i'] + 2) % width
             head_pos['j'] = (head_pos['j'] + 2) % length
         elif head_pos['eye_direct'] == DIRECTIONS['left']:
-            return head_pos
+            head_pos['j'] += 4
         elif head_pos['eye_direct'] == DIRECTIONS['back']:
             head_pos['i'] = (head_pos['i'] - 2) % width
             head_pos['j'] = (head_pos['j'] + 2) % length
@@ -44,7 +44,7 @@ def head_move(player_turn: str,
             head_pos['i'] = (head_pos['i'] + 2) % width
             head_pos['j'] = (head_pos['j'] - 2) % length
         elif head_pos['eye_direct'] == DIRECTIONS['straight']:
-            return head_pos
+            head_pos['i'] += 4
         elif head_pos['eye_direct'] == DIRECTIONS['left']:
             head_pos['i'] = (head_pos['i'] + 2) % width
             head_pos['j'] = (head_pos['j'] + 2) % length
@@ -56,7 +56,7 @@ def head_move(player_turn: str,
             head_pos['i'] = (head_pos['i'] + 2) % width
             head_pos['j'] = (head_pos['j'] - 2) % length
         elif head_pos['eye_direct'] == DIRECTIONS['right']:
-            return head_pos
+            head_pos['j'] -= 4
         elif head_pos['eye_direct'] == DIRECTIONS['back']:
             head_pos['i'] = (head_pos['i'] - 2) % width
             head_pos['j'] = (head_pos['j'] - 2) % length
