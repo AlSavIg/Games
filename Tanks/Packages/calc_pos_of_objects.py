@@ -1,10 +1,4 @@
-import os
-from .field_creating import create_field
-from .constants import START_HEAD_POS, DIRECTIONS
-# from .control import control_signal
-# from field_creating import create_field
-
-current_head_pos = START_HEAD_POS.copy()
+from .constants import DIRECTIONS
 
 
 def head_move(player_turn: str,
@@ -26,7 +20,7 @@ def head_move(player_turn: str,
             head_pos['i'] = (head_pos['i'] - 2) % width
             head_pos['j'] = (head_pos['j'] - 2) % length
         elif head_pos['eye_direct'] == DIRECTIONS['back']:
-            pass
+            return head_pos
         elif head_pos['eye_direct'] == DIRECTIONS['left']:
             head_pos['i'] = (head_pos['i'] - 2) % width
             head_pos['j'] = (head_pos['j'] + 2) % length
@@ -38,7 +32,7 @@ def head_move(player_turn: str,
             head_pos['i'] = (head_pos['i'] + 2) % width
             head_pos['j'] = (head_pos['j'] + 2) % length
         elif head_pos['eye_direct'] == DIRECTIONS['left']:
-            pass
+            return head_pos
         elif head_pos['eye_direct'] == DIRECTIONS['back']:
             head_pos['i'] = (head_pos['i'] - 2) % width
             head_pos['j'] = (head_pos['j'] + 2) % length
@@ -50,7 +44,7 @@ def head_move(player_turn: str,
             head_pos['i'] = (head_pos['i'] + 2) % width
             head_pos['j'] = (head_pos['j'] - 2) % length
         elif head_pos['eye_direct'] == DIRECTIONS['straight']:
-            pass
+            return head_pos
         elif head_pos['eye_direct'] == DIRECTIONS['left']:
             head_pos['i'] = (head_pos['i'] + 2) % width
             head_pos['j'] = (head_pos['j'] + 2) % length
@@ -62,7 +56,7 @@ def head_move(player_turn: str,
             head_pos['i'] = (head_pos['i'] + 2) % width
             head_pos['j'] = (head_pos['j'] - 2) % length
         elif head_pos['eye_direct'] == DIRECTIONS['right']:
-            pass
+            return head_pos
         elif head_pos['eye_direct'] == DIRECTIONS['back']:
             head_pos['i'] = (head_pos['i'] - 2) % width
             head_pos['j'] = (head_pos['j'] - 2) % length
@@ -71,30 +65,36 @@ def head_move(player_turn: str,
     return head_pos
 
 
-def tank_move(playing_field: tuple, player_turn: str) -> tuple:
+def make_tank(length: int,
+              width: int,
+              head_pos: dict) -> set:
     """
-        Принимает на вход текущее состояние игрового поля, а также ход игрока,
-        после чего вносит в игровое поле изменения в соответствии со сделанным ходом,
-        возвращая в итоге новое, измененное состояние игрового поля для отрисовки (вывода).
+        Принимает в качестве аргументов длину, ширину поля,
+        а также текущее положение 'дула' ('head') танка.
+        Возвращает множество, содержащее координаты,
+        в форме кортежей из 2-х значений (i и j или х и у),
+        в которых назодится танк в текущий момент.
+        *** При переходе через границы игрового поля
+            танк появится с противоположной стороны.
     """
-    global current_head_pos
-    field_len = len(playing_field[0])
-    field_wid = len(playing_field)
-    current_head_pos = head_move(player_turn,
-                                 current_head_pos,
-                                 field_len,
-                                 field_wid)
-    playing_field = create_field(field_len,
-                                 field_wid,
-                                 current_head_pos)
-    # else:
-    #     print('WRONG TURN')
+    i, j, eye_direct = head_pos['i'], head_pos['j'], head_pos['eye_direct']
+    tank_coordinates = {(i, j)}
 
-    return playing_field
+    if eye_direct == DIRECTIONS['straight']:
+        for k in range(i + 1, i + 4):
+            for z in range(j - 1, j + 2):
+                tank_coordinates.add((k % width, z % length))
+    elif eye_direct == DIRECTIONS['right']:
+        for k in range(i - 1, i + 2):
+            for z in range(j - 3, j):
+                tank_coordinates.add((k % width, z % length))
+    elif eye_direct == DIRECTIONS['back']:
+        for k in range(i - 3, i):
+            for z in range(j - 1, j + 2):
+                tank_coordinates.add((k % width, z % length))
+    elif eye_direct == DIRECTIONS['left']:
+        for k in range(i - 1, i + 2):
+            for z in range(j + 1, j + 4):
+                tank_coordinates.add((k % width, z % length))
 
-
-def clear_window() -> None:
-    """
-        Очищает окно для начала отрисовки следующего кадра.
-    """
-    os.system('cls')
+    return tank_coordinates

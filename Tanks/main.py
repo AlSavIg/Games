@@ -1,14 +1,14 @@
 from Packages.rendering import render
 from Packages.control import control_signal
-from Packages.changing_frames import tank_move, clear_window
-from Packages.field_creating import create_field
+from Packages.field_creating import create_field, tank_pos
+from Packages.clear_console import clear_console
 
 
 # print(help(render))
 # print(help(control_signal))
-# print(help(tank_move))
+# print(help(tank_pos))
 # print(help(create_field))
-# print(help(clear_window))
+# print(help(clear_console))
 # print(help(start_game))
 
 
@@ -22,8 +22,8 @@ def start_game() -> None:
         render(game_field)
         print('\n')
         player_turn = control_signal()
-        game_field = tank_move(game_field, player_turn)
-        clear_window()
+        game_field = tank_pos(game_field, player_turn)
+        clear_console()
         if player_turn == 'q':
             print('GAME OVER')
             break
