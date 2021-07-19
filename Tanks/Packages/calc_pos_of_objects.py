@@ -78,7 +78,7 @@ def make_tank(length: int,
             танк появится с противоположной стороны.
     """
     i, j, eye_direct = head_pos['i'], head_pos['j'], head_pos['eye_direct']
-    tank_coordinates = {(i, j)}
+    tank_coordinates = {(i % width, j % length)}
 
     if eye_direct == DIRECTIONS['straight']:
         for k in range(i + 1, i + 4):

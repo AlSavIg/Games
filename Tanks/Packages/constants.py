@@ -13,8 +13,6 @@ START_HEAD_POS = {'i': 1,
 
 FIELD_SIZE = (20, 20)
 # Game field size (length, width)
-# Game field size (player_turn, len, wid)
-# player_turn = '' means 'player made nothing'
 
 # tank_pattern = ((1, 1, 1),
 #                 (1, 1, 1, 1),
