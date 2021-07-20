@@ -1,4 +1,8 @@
 from .constants import DIRECTIONS
+from .trivial_move import move_straight_and_left, \
+                          move_straight_and_right, \
+                          move_back_and_right, \
+                          move_back_and_left
 
 
 def head_move(player_turn: str,
@@ -6,57 +10,46 @@ def head_move(player_turn: str,
     """
         Принимает на вход ход игрока и текущее положение 'дула' ('head') танка.
         Возвращает новое положение 'дула' ('head') танка.
-
-        ТРЕБУЕТ ПЕРЕРАБОТКИ, А ИМЕННО РАЗБИЕНИЯ НА НАБОР МАЛЕНЬКИХ ФУНКЦИЙ (ПОВОРОТА
-        В ДВУМЕРНОМ ДЕКАРТОВОМ ПРОСТРАНСТВЕ).
     """
     if player_turn == DIRECTIONS['straight']:
         if head_pos['eye_direct'] == DIRECTIONS['straight']:
-            head_pos['i'] -= 1
+            head_pos = move_straight_and_right(head_pos, 1, 0)
         elif head_pos['eye_direct'] == DIRECTIONS['right']:
-            head_pos['i'] -= 2
-            head_pos['j'] -= 2
+            head_pos = move_straight_and_left(head_pos, 2, 2)
         elif head_pos['eye_direct'] == DIRECTIONS['back']:
-            head_pos['i'] -= 4
+            head_pos = move_straight_and_right(head_pos, 4, 0)
         elif head_pos['eye_direct'] == DIRECTIONS['left']:
-            head_pos['i'] -= 2
-            head_pos['j'] += 2
+            head_pos = move_straight_and_right(head_pos, 2, 2)
         head_pos['eye_direct'] = DIRECTIONS['straight']
     elif player_turn == DIRECTIONS['right']:
         if head_pos['eye_direct'] == DIRECTIONS['right']:
-            head_pos['j'] += 1
+            head_pos = move_back_and_right(head_pos, 0, 1)
         elif head_pos['eye_direct'] == DIRECTIONS['straight']:
-            head_pos['i'] += 2
-            head_pos['j'] += 2
+            head_pos = move_back_and_right(head_pos, 2, 2)
         elif head_pos['eye_direct'] == DIRECTIONS['left']:
-            head_pos['j'] += 4
+            head_pos = move_back_and_right(head_pos, 0, 4)
         elif head_pos['eye_direct'] == DIRECTIONS['back']:
-            head_pos['i'] -= 2
-            head_pos['j'] += 2
+            head_pos = move_straight_and_right(head_pos, 2, 2)
         head_pos['eye_direct'] = DIRECTIONS['right']
     elif player_turn == DIRECTIONS['back']:
         if head_pos['eye_direct'] == DIRECTIONS['back']:
-            head_pos['i'] += 1
+            head_pos = move_back_and_left(head_pos, 1, 0)
         elif head_pos['eye_direct'] == DIRECTIONS['right']:
-            head_pos['i'] += 2
-            head_pos['j'] -= 2
+            head_pos = move_back_and_left(head_pos, 2, 2)
         elif head_pos['eye_direct'] == DIRECTIONS['straight']:
-            head_pos['i'] += 4
+            head_pos = move_back_and_right(head_pos, 4, 0)
         elif head_pos['eye_direct'] == DIRECTIONS['left']:
-            head_pos['i'] += 2
-            head_pos['j'] += 2
+            head_pos = move_back_and_right(head_pos, 2, 2)
         head_pos['eye_direct'] = DIRECTIONS['back']
     elif player_turn == DIRECTIONS['left']:
         if head_pos['eye_direct'] == DIRECTIONS['left']:
-            head_pos['j'] -= 1
+            head_pos = move_back_and_left(head_pos, 0, 1)
         elif head_pos['eye_direct'] == DIRECTIONS['straight']:
-            head_pos['i'] += 2
-            head_pos['j'] -= 2
+            head_pos = move_back_and_left(head_pos, 2, 2)
         elif head_pos['eye_direct'] == DIRECTIONS['right']:
-            head_pos['j'] -= 4
+            head_pos = move_back_and_left(head_pos, 0, 4)
         elif head_pos['eye_direct'] == DIRECTIONS['back']:
-            head_pos['i'] -= 2
-            head_pos['j'] -= 2
+            head_pos = move_straight_and_left(head_pos, 2, 2)
         head_pos['eye_direct'] = DIRECTIONS['left']
 
     return head_pos
