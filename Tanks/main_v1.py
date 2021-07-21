@@ -1,9 +1,9 @@
 from Packages.rendering import render
-from Packages.control import control_signal
+from Tanks.Control.input_control import control_signal
 from Packages.field_creating import create_field
 from Packages.clear_console import clear_console
 from Packages.constants import FIELD_SIZE
-from Packages.menu import show_menu
+from Packages.menu_v1 import show_menu
 
 # print(help(render))
 # print(help(control_signal))
@@ -18,15 +18,18 @@ def start_game() -> None:
         Позволяет собрать все функции всех модулей воедино и начать игру.
     """
     player_turn = show_menu()
+    clear_console()
+    game_field = create_field(player_turn, *FIELD_SIZE)
+    render(game_field)
     while True:
-        clear_console()
-        game_field = create_field(player_turn, *FIELD_SIZE)
-        render(game_field)
         player_turn = control_signal()
-        if player_turn == 'quit':
+        if player_turn == 'q':
             clear_console()
             print('GAME OVER')
             break
+        clear_console()
+        game_field = create_field(player_turn, *FIELD_SIZE)
+        render(game_field)
 
 
 start_game()
