@@ -1,0 +1,5 @@
+colorama==0.4.4
+keyboard==0.13.5
+pynput==1.7.3
+six==1.16.0
+termcolor==1.1.0
