@@ -11,7 +11,8 @@ START_HEAD_POS = {'i': 1,
                   'eye_direct': 'd'}
 # i, j or y, x (according to school program)
 
-FIELD_SIZE = (20, 20)
+LENGTH = 20
+WIDTH = 20
 # Game field size (length, width)
 
 # tank_pattern = ((1, 1, 1),

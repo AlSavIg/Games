@@ -1,4 +1,4 @@
-from .constants import DIRECTIONS
+from .constants import DIRECTIONS, LENGTH, WIDTH
 from .trivial_move import move_straight_and_left, \
                           move_straight_and_right, \
                           move_back_and_right, \
@@ -55,37 +55,56 @@ def head_move(player_turn: str,
     return head_pos
 
 
-def make_tank(length: int,
-              width: int,
-              head_pos: dict) -> set:
+def make_tank(head_pos: dict) -> set:
     """
-        Принимает в качестве аргументов длину, ширину поля,
-        а также текущее положение 'дула' ('head') танка.
+        Принимает в качестве аргумента текущее положение 'дула' ('head') танка.
         Возвращает множество, содержащее координаты,
         в форме кортежей из 2-х значений (i и j или х и у),
         в которых назодится танк в текущий момент,
-        используя кольца вычетов по модулю length или width.
+        используя кольца вычетов по модулю length или width (globals).
         *** При переходе через границы игрового поля
             танк появится с противоположной стороны.
     """
     i, j, eye_direct = head_pos['i'], head_pos['j'], head_pos['eye_direct']
-    tank_coordinates = {(i % width, j % length)}
+    tank_coordinates = {(i % LENGTH, j % WIDTH)}
 
     if eye_direct == DIRECTIONS['straight']:
         for k in range(i + 1, i + 4):
             for z in range(j - 1, j + 2):
-                tank_coordinates.add((k % width, z % length))
+                tank_coordinates.add((k % LENGTH, z % WIDTH))
     elif eye_direct == DIRECTIONS['right']:
         for k in range(i - 1, i + 2):
             for z in range(j - 3, j):
-                tank_coordinates.add((k % width, z % length))
+                tank_coordinates.add((k % LENGTH, z % WIDTH))
     elif eye_direct == DIRECTIONS['back']:
         for k in range(i - 3, i):
             for z in range(j - 1, j + 2):
-                tank_coordinates.add((k % width, z % length))
+                tank_coordinates.add((k % LENGTH, z % WIDTH))
     elif eye_direct == DIRECTIONS['left']:
         for k in range(i - 1, i + 2):
             for z in range(j + 1, j + 4):
-                tank_coordinates.add((k % width, z % length))
+                tank_coordinates.add((k % LENGTH, z % WIDTH))
 
     return tank_coordinates
+
+
+def make_shoot(head_pos: dict) -> dict:
+    """
+        Принимает на вход позицию 'дула' ('head') танка в форме словаря
+        формата (х (i), у(j), направление дула),
+        а возвращает позицию ядра сразу после выстрела
+        в формате (х (i), у(j), направление полета
+                   (= направлению дула в момент выстрела))
+    """
+    eye_direct = head_pos['eye_direct']
+
+    if eye_direct == DIRECTIONS['straight']:
+        ball_pos = move_straight_and_left(head_pos, 1, 0)
+    elif eye_direct == DIRECTIONS['right']:
+        ball_pos = move_back_and_right(head_pos, 0, 1)
+    elif eye_direct == DIRECTIONS['back']:
+        ball_pos = move_back_and_left(head_pos, 1, 0)
+    elif eye_direct == DIRECTIONS['left']:
+        ball_pos = move_back_and_left(head_pos, 0, 1)
+
+    return ball_pos

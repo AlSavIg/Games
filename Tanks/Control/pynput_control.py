@@ -1,7 +1,7 @@
 from pynput import keyboard
 from ..Packages.clear_console import clear_console
 from ..Packages.field_creating import create_field
-from ..Packages.constants import FIELD_SIZE
+from ..Packages.constants import LENGTH, WIDTH
 from ..Packages.rendering import render
 
 
@@ -11,7 +11,7 @@ def field_demo() -> None:
         после нажатия на enter в меню.
     """
     clear_console()
-    render(create_field(length=FIELD_SIZE[0], width=FIELD_SIZE[1]))
+    render(create_field(length=LENGTH, width=WIDTH))
 
 
 def make_move(move: str) -> None:
@@ -24,7 +24,7 @@ def make_move(move: str) -> None:
     """
     player_turn = move
     clear_console()
-    game_field = create_field(player_turn, *FIELD_SIZE)
+    game_field = create_field(player_turn, LENGTH, WIDTH)
     render(game_field)
 
 
@@ -51,6 +51,8 @@ def on_press(key: str) -> bool:
         make_move('s')
     elif key == keyboard.KeyCode(char='d'):
         make_move('d')
+    elif key == keyboard.Key.space:
+        make_move(' ')
 
 
 # def on_release(key):

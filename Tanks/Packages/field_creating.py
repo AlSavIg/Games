@@ -1,12 +1,12 @@
-from .constants import START_HEAD_POS
-from .calc_pos_of_objects import make_tank, head_move
+from .constants import START_HEAD_POS, LENGTH, WIDTH
+from .calc_pos_of_objects import make_tank, head_move, make_shoot
 
 current_head_pos = START_HEAD_POS.copy()
 
 
 def create_field(player_turn='',
-                 length=10,
-                 width=10) -> tuple:
+                 length: int=LENGTH,
+                 width: int=WIDTH) -> tuple:
     """
         Функция принимает на вход значения длины и ширины игрового поля,
         а также текущий ход игрока,
@@ -22,16 +22,18 @@ def create_field(player_turn='',
     global current_head_pos
 
     current_head_pos = head_move(player_turn,
-                                 current_head_pos)
+                                 current_head_pos.copy())
 
-    tank_coord = make_tank(length,
-                           width,
-                           current_head_pos)
+    tank_coord = make_tank(current_head_pos.copy())
 
     for coord in tank_coord:
         playing_field[coord[0]][coord[1]] = 1
     playing_field = tuple(playing_field)
 
+    if player_turn == ' ':
+        current_ball_pos = make_shoot(current_head_pos.copy())
+        playing_field[current_ball_pos['i']][current_ball_pos['j']] = 2
+        
     return playing_field
 
 

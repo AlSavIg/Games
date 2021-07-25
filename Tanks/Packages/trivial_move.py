@@ -1,3 +1,6 @@
+from .constants import LENGTH, WIDTH
+
+
 def move_right(head_pos: dict, num_moves: int) -> dict:
     """
         Принимает на вход позицию 'дула' ('head') танка
@@ -8,6 +11,7 @@ def move_right(head_pos: dict, num_moves: int) -> dict:
         Возвращает новую позицию 'дула' ('head') танка.
     """
     head_pos['j'] += num_moves
+    head_pos['j'] %= LENGTH
 
     return head_pos
 
@@ -22,6 +26,7 @@ def move_left(head_pos: dict, num_moves: int) -> dict:
         Возвращает новую позицию 'дула' ('head') танка.
     """
     head_pos['j'] -= num_moves
+    head_pos['j'] %= LENGTH
 
     return head_pos
 
@@ -36,6 +41,7 @@ def move_straight(head_pos: dict, num_moves: int) -> dict:
         Возвращает новую позицию 'дула' ('head') танка.
     """
     head_pos['i'] -= num_moves
+    head_pos['i'] %= WIDTH
 
     return head_pos
 
@@ -50,6 +56,7 @@ def move_back(head_pos: dict, num_moves: int) -> dict:
         Возвращает новую позицию 'дула' ('head') танка.
     """
     head_pos['i'] += num_moves
+    head_pos['i'] %= WIDTH
 
     return head_pos
 
