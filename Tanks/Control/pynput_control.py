@@ -1,8 +1,8 @@
 from pynput import keyboard
-from ..Packages.clear_console import clear_console
-from ..Packages.field_creating import create_field
-from ..Packages.constants import LENGTH, WIDTH
-from ..Packages.rendering import render
+from Packages.clear_console import clear_console
+from Packages.field_creating import create_field
+from Packages.constants import LENGTH, WIDTH
+from Packages.rendering import render
 
 
 def field_demo() -> None:
@@ -66,11 +66,13 @@ def on_press(key: str) -> bool:
 # Collect events until released
 def start_read() -> None:
     """
-        Запускает процесс считывания с клавиатуры действий игрока в реальном времени.
+        Запускает процесс считывания с клавиатуры действий игрока
+        в реальном времени.
         *** Используется пакет pynput(.keyboard)
     """
     field_demo()
-    with keyboard.Listener(on_press=on_press) as listener:  # , on_release=on_release) as listener:
+    with keyboard.Listener(on_press=on_press) as listener:
+        # , on_release=on_release) as listener:
         listener.join()
 
 

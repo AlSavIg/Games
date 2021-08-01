@@ -1,5 +1,5 @@
-from Games.Tanks.Control.pynput_control import start_read
-from Games.Tanks.Packages.menu_v2 import print_menu
+from Control.pynput_control import start_read
+from Packages.menu_v2 import print_menu
 
 # print(help(start_read))
 # print(help(print_menu))
