@@ -1,6 +1,9 @@
 import os
+import time
 from abc import ABCMeta
 from termcolor import cprint
+from threading import Thread
+from pynput import keyboard
 
 LENGTH = 10
 WIDTH = 10
@@ -210,7 +213,6 @@ def print_menu() -> None:
 
 
 def render(playing_field: tuple) -> None:
-
     pixel_size = 2
 
     def colorize(color: int) -> None:
@@ -258,31 +260,75 @@ START_HEAD_POS = {'i': 1,
                   'direction': 'd'}
 
 
-def main():
-    turn = str()
+class MyThread(Thread):
+    """A threading example"""
+    def __init__(self, name):
+        """Инициализация потока"""
+        Thread.__init__(self)
+        self.name = name
 
-    def make_turn(map_, tank_, flag=True):
-        nonlocal turn
-        if not flag:
-            print_menu()
-        clear_console()
-        tank_.move_head(turn)
-        map_.display_obj(tank_)
-        render(map_.map)
-        turn = control_signal()
+    my_turn = str()
 
-    game_map = Map()
-    tank = Tank(START_HEAD_POS)
+    def run(self):
+        """Запуск потока"""
+        def make_turn(map_, tank_, flag=True):
+            if not flag:
+                print_menu()
+            clear_console()
+            tank_.move_head(MyThread.my_turn)
+            map_.display_obj(tank_)
+            render(map_.map)
+            time.sleep(0.5)
+            # turn = control_signal()
 
-    make_turn(game_map, tank, False)
-    while turn != 'q':
-        make_turn(game_map, tank)
-    else:
-        clear_console()
-        print('GAME OVER')
+        def on_press(key: str) -> bool:
+            """
+                Внутри этой функции прописан код,
+                который срабатывает всякий раз при нажатии определенной клавиши.
+            """
+            if key == keyboard.KeyCode(char='q'):
+                MyThread.my_turn = 'q'
+                return False
+            elif key == keyboard.KeyCode(char='w'):
+                MyThread.my_turn = 'w'
+            elif key == keyboard.KeyCode(char='a'):
+                MyThread.my_turn = 'a'
+            elif key == keyboard.KeyCode(char='s'):
+                MyThread.my_turn = 's'
+            elif key == keyboard.KeyCode(char='d'):
+                MyThread.my_turn = 'd'
+            elif key == keyboard.Key.space:
+                MyThread.my_turn = ' '
 
-    # cannon_ball = CannonBall()
+        def start_read() -> None:
+            """Запускает процесс считывания с клавиатуры действий игрока в реальном времени."""
+            with keyboard.Listener(on_press=on_press) as listener:
+                listener.join()
+
+        if self.name == 'output':
+            game_map = Map()
+            tank = Tank(START_HEAD_POS)
+
+            make_turn(game_map, tank, False)
+            while MyThread.my_turn != 'q':
+                make_turn(game_map, tank)
+            else:
+                clear_console()
+                print('GAME OVER')
+
+        elif self.name == 'input':
+            start_read()
+
+
+def create_threads():
+    """
+    Создаем группу потоков
+    """
+    input_thread = MyThread('input')
+    output_thread = MyThread('output')
+    input_thread.start()
+    output_thread.start()
 
 
 if __name__ == '__main__':
-    main()
+    create_threads()
