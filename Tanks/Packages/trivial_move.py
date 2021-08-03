@@ -1,7 +1,7 @@
 from .constants import LENGTH, WIDTH
 
 
-def move_right(head_pos: dict, num_moves: int) -> dict:
+def move_right(head_pos: dict, num_moves: int = 1) -> dict:
     """
         Принимает на вход позицию 'дула' ('head') танка
         в формате (i, j, eye_direct),
@@ -16,7 +16,7 @@ def move_right(head_pos: dict, num_moves: int) -> dict:
     return head_pos
 
 
-def move_left(head_pos: dict, num_moves: int) -> dict:
+def move_left(head_pos: dict, num_moves: int = 1) -> dict:
     """
         Принимает на вход позицию 'дула' ('head') танка
         в формате (i, j, eye_direct),
@@ -31,7 +31,7 @@ def move_left(head_pos: dict, num_moves: int) -> dict:
     return head_pos
 
 
-def move_straight(head_pos: dict, num_moves: int) -> dict:
+def move_straight(head_pos: dict, num_moves: int = 1) -> dict:
     """
         Принимает на вход позицию 'дула' ('head') танка
         в формате (i, j, eye_direct),
@@ -46,7 +46,7 @@ def move_straight(head_pos: dict, num_moves: int) -> dict:
     return head_pos
 
 
-def move_back(head_pos: dict, num_moves: int) -> dict:
+def move_back(head_pos: dict, num_moves: int = 1) -> dict:
     """
         Принимает на вход позицию 'дула' ('head') танка
         в формате (i, j, eye_direct),
