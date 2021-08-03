@@ -1,5 +1,4 @@
 import os
-import time
 from abc import ABCMeta
 from termcolor import cprint
 
@@ -8,6 +7,11 @@ WIDTH = 10
 
 
 class MapFeatures(metaclass=ABCMeta):
+    """
+        Содержит все необходимые характеристики игрового поля.
+        Также создает (public) атрибуты, которые содержат информацию
+        о размерах игровой карты.
+    """
     length = width = int()
 
     def __init__(self, length, width):
@@ -25,7 +29,7 @@ class Map(MapFeatures):
     def __clear_map(self):
         return [[0] * self.length for _ in range(self.width)]
 
-    def create_object(self, mov_obj):
+    def display_obj(self, mov_obj):
         self.map = self.__clear_map()
         if mov_obj.name == 'tank':
             mov_obj.make_body()
@@ -51,20 +55,20 @@ class MovingObjects:
         return i % MapFeatures.width, j % MapFeatures.length
 
     @staticmethod
-    def move_up(i, j):
-        return i - 1, j
+    def move_up(i, j, num=1):
+        return i - num, j
 
     @staticmethod
-    def move_down(i, j):
-        return i + 1, j
+    def move_down(i, j, num=1):
+        return i + num, j
 
     @staticmethod
-    def move_left(i, j):
-        return i, j - 1
+    def move_left(i, j, num=1):
+        return i, j - num
 
     @staticmethod
-    def move_right(i, j):
-        return i, j + 1
+    def move_right(i, j, num=1):
+        return i, j + num
 
     def simplest_move(self):
         directions = MovingObjects._DIRECTIONS
@@ -85,16 +89,13 @@ class Tank(MovingObjects):
     def __init__(self, pos: dict):
         super().__init__(**pos)
         self.name = 'tank'
-        # start pos of the tank in coordinates
-        self.body = {(0, 0), (0, 1), (0, 2),
-                     (1, 0), (1, 1), (1, 2), (1, 3),
-                     (2, 0), (2, 1), (2, 2)}
+        self.body = set()
 
     def make_body(self):
         directions = MovingObjects._DIRECTIONS
         i, j, direction = self.i, self.j, self.direction
 
-        tank_coord = {(i, j)}
+        tank_coord = {MovingObjects.deduction_ring(i, j)}
 
         if direction == directions['up']:
             for k in range(i + 1, i + 4):
@@ -104,7 +105,7 @@ class Tank(MovingObjects):
             for k in range(i - 1, i + 2):
                 for z in range(j - 3, j):
                     tank_coord.add(MovingObjects.deduction_ring(k, z))
-        elif direction == directions['back']:
+        elif direction == directions['down']:
             for k in range(i - 3, i):
                 for z in range(j - 1, j + 2):
                     tank_coord.add(MovingObjects.deduction_ring(k, z))
@@ -114,6 +115,69 @@ class Tank(MovingObjects):
                     tank_coord.add(MovingObjects.deduction_ring(k, z))
 
         self.body = tank_coord
+
+    def move_head(self, player_turn: str):
+        """
+            Принимает на вход ход игрока.
+            Изменяет атрибуты положения 'дула' ('head') танка.
+        """
+        DIRECTIONS = super()._DIRECTIONS
+        if player_turn == DIRECTIONS['up']:
+            if self.direction == DIRECTIONS['up']:
+                self.i, self.j = MovingObjects.move_up(self.i, self.j, 1)
+            elif self.direction == DIRECTIONS['right']:
+                self.i, self.j = MovingObjects.move_left(*MovingObjects.move_up(self.i,
+                                                                                self.j,
+                                                                                2), 2)
+            elif self.direction == DIRECTIONS['down']:
+                self.i, self.j = MovingObjects.move_up(self.i, self.j, 4)
+            elif self.direction == DIRECTIONS['left']:
+                self.i, self.j = MovingObjects.move_right(*MovingObjects.move_up(self.i,
+                                                                                 self.j,
+                                                                                 2), 2)
+            self.direction = DIRECTIONS['up']
+        elif player_turn == DIRECTIONS['right']:
+            if self.direction == DIRECTIONS['right']:
+                self.i, self.j = MovingObjects.move_right(self.i, self.j, 1)
+            elif self.direction == DIRECTIONS['up']:
+                self.i, self.j = MovingObjects.move_right(*MovingObjects.move_down(self.i,
+                                                                                   self.j,
+                                                                                   2), 2)
+            elif self.direction == DIRECTIONS['left']:
+                self.i, self.j = MovingObjects.move_right(self.i, self.j, 4)
+            elif self.direction == DIRECTIONS['down']:
+                self.i, self.j = MovingObjects.move_right(*MovingObjects.move_up(self.i,
+                                                                                 self.j,
+                                                                                 2), 2)
+            self.direction = DIRECTIONS['right']
+        elif player_turn == DIRECTIONS['down']:
+            if self.direction == DIRECTIONS['down']:
+                self.i, self.j = MovingObjects.move_down(self.i, self.j, 1)
+            elif self.direction == DIRECTIONS['right']:
+                self.i, self.j = MovingObjects.move_left(*MovingObjects.move_down(self.i,
+                                                                                  self.j,
+                                                                                  2), 2)
+            elif self.direction == DIRECTIONS['up']:
+                self.i, self.j = MovingObjects.move_down(self.i, self.j, 4)
+            elif self.direction == DIRECTIONS['left']:
+                self.i, self.j = MovingObjects.move_right(*MovingObjects.move_down(self.i,
+                                                                                   self.j,
+                                                                                   2), 2)
+            self.direction = DIRECTIONS['down']
+        elif player_turn == DIRECTIONS['left']:
+            if self.direction == DIRECTIONS['left']:
+                self.i, self.j = MovingObjects.move_left(self.i, self.j, 1)
+            elif self.direction == DIRECTIONS['up']:
+                self.i, self.j = MovingObjects.move_left(*MovingObjects.move_down(self.i,
+                                                                                  self.j,
+                                                                                  2), 2)
+            elif self.direction == DIRECTIONS['right']:
+                self.i, self.j = MovingObjects.move_left(self.i, self.j, 4)
+            elif self.direction == DIRECTIONS['down']:
+                self.i, self.j = MovingObjects.move_left(*MovingObjects.move_up(self.i,
+                                                                                self.j,
+                                                                                2), 2)
+            self.direction = DIRECTIONS['left']
 
 
 class CannonBall(MovingObjects):
@@ -195,31 +259,27 @@ START_HEAD_POS = {'i': 1,
 
 
 def main():
+    turn = str()
 
-    # turn = str()
-
-    def meeting_messages(map_):
-        # nonlocal turn
-        print_menu()
+    def make_turn(map_, tank_, flag=True):
+        nonlocal turn
+        if not flag:
+            print_menu()
         clear_console()
+        tank_.move_head(turn)
+        map_.display_obj(tank_)
         render(map_.map)
-        # turn = control_signal()
-
-    def make_turn(map_, tank_):
-        # nonlocal turn
-        clear_console()
-        tank_.simplest_move()
-        map_.create_object(tank_)
-        render(map_.map)
-        time.sleep(1)
-        # turn = control_signal()
+        turn = control_signal()
 
     game_map = Map()
     tank = Tank(START_HEAD_POS)
 
-    meeting_messages(game_map)
-    for _ in range(10):
+    make_turn(game_map, tank, False)
+    while turn != 'q':
         make_turn(game_map, tank)
+    else:
+        clear_console()
+        print('GAME OVER')
 
     # cannon_ball = CannonBall()
 
