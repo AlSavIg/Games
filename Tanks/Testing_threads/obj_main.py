@@ -5,8 +5,8 @@ from termcolor import cprint
 from threading import Thread
 from pynput import keyboard
 
-LENGTH = 10
-WIDTH = 10
+LENGTH = 20
+WIDTH = 20
 
 
 class MapFeatures(metaclass=ABCMeta):
@@ -32,14 +32,15 @@ class Map(MapFeatures):
     def __clear_map(self):
         return [[0] * self.length for _ in range(self.width)]
 
-    def display_obj(self, mov_obj):
+    def display_obj(self, *args):
         self.map = self.__clear_map()
-        if mov_obj.name == 'tank':
-            mov_obj.make_body()
-            for i, j in mov_obj.body:
-                self.map[i][j] = 1
-        elif mov_obj.name == 'cannon_ball':
-            self.map[mov_obj.i][mov_obj.j] = 2
+        for mov_obj in args:
+            if mov_obj.name == 'tank':
+                mov_obj.make_body()
+                for i, j in mov_obj.body:
+                    self.map[i][j] = 1
+            elif mov_obj.name == 'cannon_ball' and mov_obj.visibility:
+                self.map[mov_obj.i][mov_obj.j] = 2
 
 
 class MovingObjects:
@@ -72,6 +73,11 @@ class MovingObjects:
     @staticmethod
     def move_right(i, j, num=1):
         return i, j + num
+
+    def return_attributes(self):
+        return {'i': self.i,
+                'j': self.j,
+                'direction': self.direction}
 
     def simplest_move(self):
         directions = MovingObjects._DIRECTIONS
@@ -184,9 +190,27 @@ class Tank(MovingObjects):
 
 
 class CannonBall(MovingObjects):
-    def __init__(self, pos: dict):
-        super().__init__(**pos)
+    def __init__(self, head, visibility=True):
+        super().__init__(head.i, head.j, head.direction)
         self.name = 'cannon_ball'
+        self.visibility = visibility
+
+    def shoot(self, head, visibility=True):
+        self.direction = cur_direct = head.direction
+        directions = MovingObjects._DIRECTIONS
+        i = j = int()
+
+        if cur_direct == directions['up']:
+            i, j = MovingObjects.move_up(head.i, head.j, 1)
+        elif cur_direct == directions['right']:
+            i, j = MovingObjects.move_right(head.i, head.j, 1)
+        elif cur_direct == directions['down']:
+            i, j = MovingObjects.move_down(head.i, head.j, 1)
+        elif cur_direct == directions['left']:
+            i, j = MovingObjects.move_left(head.i, head.j, 1)
+
+        self.i, self.j = MovingObjects.deduction_ring(i, j)
+        self.visibility = visibility
 
 
 def control_signal() -> str:
@@ -271,15 +295,19 @@ class MyThread(Thread):
 
     def run(self):
         """Запуск потока"""
-        def make_turn(map_, tank_, flag=True):
+        def make_turn(map_, tank_, cannon_ball_, flag=True):
             if not flag:
                 print_menu()
             clear_console()
-            tank_.move_head(MyThread.my_turn)
-            map_.display_obj(tank_)
+            if MyThread.my_turn != ' ':
+                tank_.move_head(MyThread.my_turn)
+                cannon_ball_.simplest_move()
+            else:
+                cannon_ball_.shoot(tank_)
+            map_.display_obj(tank_, cannon_ball_)
             render(map_.map)
-            time.sleep(0.5)
-            # turn = control_signal()
+            MyThread.my_turn = str()
+            time.sleep(0.2)
 
         def on_press(key: str) -> bool:
             """
@@ -308,10 +336,11 @@ class MyThread(Thread):
         if self.name == 'output':
             game_map = Map()
             tank = Tank(START_HEAD_POS)
+            cannon_ball = CannonBall(tank, visibility=False)
 
-            make_turn(game_map, tank, False)
+            make_turn(game_map, tank, cannon_ball, False)
             while MyThread.my_turn != 'q':
-                make_turn(game_map, tank)
+                make_turn(game_map, tank, cannon_ball)
             else:
                 clear_console()
                 print('GAME OVER')
