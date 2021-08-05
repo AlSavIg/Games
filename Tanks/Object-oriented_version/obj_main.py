@@ -347,19 +347,27 @@ class MyThread(Thread):
             input()
 
             while MyThread.my_turn != 'q':
+
                 balls_list = getattr(CannonBall, 'list_with_balls')
+
                 if MyThread.my_turn != ' ':
                     tank.move_head(MyThread.my_turn)
                     for cannon_ball in balls_list:
                         cannon_ball.simplest_move()
                 else:
                     CannonBall().shoot(tank)
+
                 for cannon_ball in balls_list:
                     cannon_ball.collision(game_map)
+
                 game_map.display_obj(tank, *balls_list)
+
                 CannonBall.throw_garbage()
+
                 render(game_map.map)
+
                 MyThread.my_turn = str()
+
                 time.sleep(0.5)
             else:
                 render('game over')
@@ -370,16 +378,16 @@ class MyThread(Thread):
                     Внутри этой функции прописан код,
                     который срабатывает всякий раз при нажатии определенной клавиши.
                 """
-                if key == keyboard.KeyCode(char='q'):
+                if key == keyboard.KeyCode(char='q') or key == keyboard.KeyCode(char='й'):
                     MyThread.my_turn = 'q'
                     return False
-                elif key == keyboard.KeyCode(char='w'):
+                elif key == keyboard.KeyCode(char='w') or key == keyboard.KeyCode(char='ц'):
                     MyThread.my_turn = 'w'
-                elif key == keyboard.KeyCode(char='a'):
+                elif key == keyboard.KeyCode(char='a') or key == keyboard.KeyCode(char='ф'):
                     MyThread.my_turn = 'a'
-                elif key == keyboard.KeyCode(char='s'):
+                elif key == keyboard.KeyCode(char='s') or key == keyboard.KeyCode(char='ы'):
                     MyThread.my_turn = 's'
-                elif key == keyboard.KeyCode(char='d'):
+                elif key == keyboard.KeyCode(char='d') or key == keyboard.KeyCode(char='в'):
                     MyThread.my_turn = 'd'
                 elif key == keyboard.Key.space:
                     MyThread.my_turn = ' '
