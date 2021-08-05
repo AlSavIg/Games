@@ -12,8 +12,8 @@ class MapFeatures(metaclass=ABCMeta):
         Также создает (public) атрибуты, которые содержат информацию
         о размерах игровой карты.
     """
-    length = 20
-    width = 20
+    length = 15
+    width = 15
     values_of_matrix_elem = {'map': 0,
                              'tank': 1,
                              'cannon_ball': 2}
@@ -51,17 +51,20 @@ class MovingObjects:
                   'down': 's',
                   'right': 'd',
                   'left': 'a'}
-    START_HEAD_POS = {'i': 1,
-                      'j': 3,
-                      'direction': 'd'}
+
+    START_POS = {'i': 0,
+                 'j': 0,
+                 'direction': 'a'}
 
     def __init__(self,
-                 i=START_HEAD_POS['i'],
-                 j=START_HEAD_POS['j'],
-                 direction=START_HEAD_POS['direction']):
+                 player=1,
+                 i=START_POS['i'],
+                 j=START_POS['j'],
+                 direction=START_POS['direction']):
         self.i = i
         self.j = j
         self.direction = direction
+        self.player = player
 
     @staticmethod
     def deduction_ring(i, j):
@@ -104,8 +107,25 @@ class MovingObjects:
 
 
 class Tank(MovingObjects):
-    def __init__(self):
-        super().__init__()
+    START_HEAD_POS_PLAYER_1 = {'i': 1,
+                               'j': 3,
+                               'direction': 'd'}
+
+    START_HEAD_POS_PLAYER_2 = {'i': MapFeatures.width - 2,
+                               'j': MapFeatures.length - 4,
+                               'direction': 'a'}
+    
+    def __init__(self, player):
+        if player == 1:
+            super().__init__(player, 
+                             Tank.START_HEAD_POS_PLAYER_1['i'],
+                             Tank.START_HEAD_POS_PLAYER_1['j'],
+                             Tank.START_HEAD_POS_PLAYER_1['direction'])
+        elif player == 2:
+            super().__init__(player,
+                             Tank.START_HEAD_POS_PLAYER_2['i'],
+                             Tank.START_HEAD_POS_PLAYER_2['j'],
+                             Tank.START_HEAD_POS_PLAYER_2['direction'])
         self.name = 'tank'
         self.body = set()
 
@@ -201,8 +221,8 @@ class Tank(MovingObjects):
 class CannonBall(MovingObjects):
     list_with_balls = []
 
-    def __init__(self, visibility=True):
-        super().__init__()
+    def __init__(self, player, visibility=True):
+        super().__init__(player=player)
         self.name = 'cannon_ball'
         self.visibility = visibility
 
@@ -335,38 +355,46 @@ class MyThread(Thread):
         Thread.__init__(self)
         self.name = name
 
-    my_turn = str()
+    f_st_player_turn = s_nd_player_turn = str()
 
     def run(self):
         """Запуск потока"""
         if self.name == 'output':
             game_map = Map()
-            tank = Tank()
-
+            tank_first = Tank(1)
+            tank_second = Tank(2)
+            
             render(menu=True)
             input()
 
-            while MyThread.my_turn != 'q':
+            while MyThread.f_st_player_turn != 'q' and MyThread.s_nd_player_turn != 'q':
 
                 balls_list = getattr(CannonBall, 'list_with_balls')
 
-                if MyThread.my_turn != ' ':
-                    tank.move_head(MyThread.my_turn)
+                if MyThread.f_st_player_turn != ' ':
+                    tank_first.move_head(MyThread.f_st_player_turn)
                     for cannon_ball in balls_list:
                         cannon_ball.simplest_move()
                 else:
-                    CannonBall().shoot(tank)
+                    CannonBall(1).shoot(tank_first)
+
+                if MyThread.s_nd_player_turn != ' ':
+                    tank_second.move_head(MyThread.s_nd_player_turn)
+                    for cannon_ball in balls_list:
+                        cannon_ball.simplest_move()
+                else:
+                    CannonBall(2).shoot(tank_second)
 
                 for cannon_ball in balls_list:
                     cannon_ball.collision(game_map)
 
-                game_map.display_obj(tank, *balls_list)
+                game_map.display_obj(tank_first, tank_second, *balls_list)
 
                 CannonBall.throw_garbage()
 
                 render(game_map.map)
 
-                MyThread.my_turn = str()
+                MyThread.f_st_player_turn = MyThread.s_nd_player_turn = str()
 
                 time.sleep(0.5)
             else:
@@ -379,18 +407,32 @@ class MyThread(Thread):
                     который срабатывает всякий раз при нажатии определенной клавиши.
                 """
                 if key == keyboard.KeyCode(char='q') or key == keyboard.KeyCode(char='й'):
-                    MyThread.my_turn = 'q'
+                    MyThread.f_st_player_turn = 'q'
                     return False
                 elif key == keyboard.KeyCode(char='w') or key == keyboard.KeyCode(char='ц'):
-                    MyThread.my_turn = 'w'
+                    MyThread.f_st_player_turn = 'w'
                 elif key == keyboard.KeyCode(char='a') or key == keyboard.KeyCode(char='ф'):
-                    MyThread.my_turn = 'a'
+                    MyThread.f_st_player_turn = 'a'
                 elif key == keyboard.KeyCode(char='s') or key == keyboard.KeyCode(char='ы'):
-                    MyThread.my_turn = 's'
+                    MyThread.f_st_player_turn = 's'
                 elif key == keyboard.KeyCode(char='d') or key == keyboard.KeyCode(char='в'):
-                    MyThread.my_turn = 'd'
+                    MyThread.f_st_player_turn = 'd'
                 elif key == keyboard.Key.space:
-                    MyThread.my_turn = ' '
+                    MyThread.f_st_player_turn = ' '
+
+                if key == keyboard.KeyCode(char='q') or key == keyboard.KeyCode(char='й'):
+                    MyThread.s_nd_player_turn = 'q'
+                    return False
+                elif key == keyboard.Key.up:
+                    MyThread.s_nd_player_turn = 'w'
+                elif key == keyboard.Key.down:
+                    MyThread.s_nd_player_turn = 's'
+                elif key == keyboard.Key.right:
+                    MyThread.s_nd_player_turn = 'd'
+                elif key == keyboard.Key.left:
+                    MyThread.s_nd_player_turn = 'a'
+                elif key == keyboard.Key.enter:
+                    MyThread.s_nd_player_turn = ' '
 
             def start_read() -> None:
                 """Запускает процесс считывания с клавиатуры действий игрока в реальном времени."""
