@@ -202,7 +202,7 @@ class CannonBall(MovingObjects):
         self.name = 'cannon_ball'
         self.visibility = visibility
 
-    def shoot(self, head, visibility=True):
+    def shoot(self, head):
         self.direction = cur_direct = head.direction
         directions = MovingObjects._DIRECTIONS
         i = j = int()
@@ -217,7 +217,33 @@ class CannonBall(MovingObjects):
             i, j = MovingObjects.move_left(head.i, head.j, 1)
 
         self.i, self.j = MovingObjects.deduction_ring(i, j)
-        self.visibility = visibility
+        self.visibility = True
+
+    def collision(self, map_obj):
+        if 0 <= self.i < map_obj.width and \
+           0 <= self.j < map_obj.length:
+            if map_obj.map[self.i][self.j] != 0:
+                self.visibility = False
+        else:
+            self.visibility = False
+
+    def throw_out_garbage(self):
+        if not self.visibility:
+            del self
+
+    def simplest_move(self):
+        directions = MovingObjects._DIRECTIONS
+        i = j = int()
+        if self.direction == directions['right']:
+            i, j = MovingObjects.move_right(self.i, self.j)
+        elif self.direction == directions['left']:
+            i, j = MovingObjects.move_left(self.i, self.j)
+        elif self.direction == directions['up']:
+            i, j = MovingObjects.move_up(self.i, self.j)
+        elif self.direction == directions['down']:
+            i, j = MovingObjects.move_down(self.i, self.j)
+
+        self.i, self.j = i, j
 
 
 def render(rendering_obj=None, menu=False) -> None:
@@ -238,22 +264,26 @@ def render(rendering_obj=None, menu=False) -> None:
     clear_console()
 
     if isinstance(rendering_obj, list):
-        def colorize(color: int) -> None:
+        def colorize(color_obj) -> None:
             nonlocal pixel_size
             """
-                Принимает в качестве аргумента число,
+                Принимает в качестве аргумента объект,
                 после чего выводит в консоль пиксель
+                или строку
                 определенного цвета, следуя следующей схеме:
                 0 - 'поле' - белый
                 1 - 'танк' - синий
                 2 - 'снаряд' - красный
             """
-            if color == 0:
-                cprint(' ' * pixel_size, on_color='on_white', sep='', end='')
-            elif color == 1:
-                cprint(' ' * pixel_size, on_color='on_blue', sep='', end='')
-            elif color == 2:
-                cprint(' ' * pixel_size, on_color='on_red', sep='', end='')
+            if isinstance(color_obj, list):
+                cprint(' ' * pixel_size * LENGTH, on_color='on_white', sep='', end='\n')
+            elif isinstance(color_obj, int):
+                if color_obj == 0:
+                    cprint(' ' * pixel_size, on_color='on_white', sep='', end='')
+                elif color_obj == 1:
+                    cprint(' ' * pixel_size, on_color='on_blue', sep='', end='')
+                elif color_obj == 2:
+                    cprint(' ' * pixel_size, on_color='on_red', sep='', end='')
         """
             Принимает в качестве аргумента объект для отрисовки
             и выводит (отрисовывает) его в консоль в соответствии с цветом пикселя,
@@ -264,6 +294,9 @@ def render(rendering_obj=None, menu=False) -> None:
             2 - 'снаряд' - красный
         """
         for row in rendering_obj:
+            if row.count(0) == LENGTH:
+                colorize(row)
+                continue
             for column in row:
                 colorize(column)
             print()
@@ -298,6 +331,7 @@ class MyThread(Thread):
                     cannon_ball.simplest_move()
                 else:
                     cannon_ball.shoot(tank)
+                cannon_ball.collision(game_map)
                 game_map.display_obj(tank, cannon_ball)
                 render(game_map.map)
                 MyThread.my_turn = str()
