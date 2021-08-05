@@ -5,16 +5,6 @@ from termcolor import cprint
 from threading import Thread
 from pynput import keyboard
 
-LENGTH = 10
-WIDTH = 10
-START_HEAD_POS = {'i': 1,
-                  'j': 3,
-                  'direction': 'd'}
-MENU = '\n\t\tТАНЧИК(И)\n' + \
-       'Управление в игре осуществляется клавишами WASD,\n' + \
-       'Для выхода из игры введите q\n' + \
-       'Для того, чтобы начать, нажмите Enter\n'
-
 
 class MapFeatures(metaclass=ABCMeta):
     """
@@ -22,7 +12,11 @@ class MapFeatures(metaclass=ABCMeta):
         Также создает (public) атрибуты, которые содержат информацию
         о размерах игровой карты.
     """
-    length = width = int()
+    length = 10
+    width = 10
+    values_of_matrix_elem = {'map': 0,
+                             'tank': 1,
+                             'cannon_ball': 2}
 
     def __init__(self, length, width):
         self.length = length
@@ -32,7 +26,9 @@ class MapFeatures(metaclass=ABCMeta):
 
 
 class Map(MapFeatures):
-    def __init__(self, length=LENGTH, width=WIDTH):
+    def __init__(self,
+                 length=MapFeatures.length,
+                 width=MapFeatures.width):
         super().__init__(length, width)
         self.map = self.__clear_map()
 
@@ -51,12 +47,18 @@ class Map(MapFeatures):
 
 
 class MovingObjects:
-    _DIRECTIONS = {'up': 'w',
-                   'down': 's',
-                   'right': 'd',
-                   'left': 'a'}
+    DIRECTIONS = {'up': 'w',
+                  'down': 's',
+                  'right': 'd',
+                  'left': 'a'}
+    START_HEAD_POS = {'i': 1,
+                      'j': 3,
+                      'direction': 'd'}
 
-    def __init__(self, i, j, direction):
+    def __init__(self,
+                 i=START_HEAD_POS['i'],
+                 j=START_HEAD_POS['j'],
+                 direction=START_HEAD_POS['direction']):
         self.i = i
         self.j = j
         self.direction = direction
@@ -87,7 +89,7 @@ class MovingObjects:
                 'direction': self.direction}
 
     def simplest_move(self):
-        directions = MovingObjects._DIRECTIONS
+        directions = MovingObjects.DIRECTIONS
         i = j = int()
         if self.direction == directions['right']:
             i, j = MovingObjects.move_right(self.i, self.j)
@@ -102,13 +104,13 @@ class MovingObjects:
 
 
 class Tank(MovingObjects):
-    def __init__(self, pos: dict):
-        super().__init__(**pos)
+    def __init__(self):
+        super().__init__()
         self.name = 'tank'
         self.body = set()
 
     def make_body(self):
-        directions = MovingObjects._DIRECTIONS
+        directions = MovingObjects.DIRECTIONS
         i, j, direction = self.i, self.j, self.direction
 
         tank_coord = {MovingObjects.deduction_ring(i, j)}
@@ -137,7 +139,7 @@ class Tank(MovingObjects):
             Принимает на вход ход игрока.
             Изменяет атрибуты положения 'дула' ('head') танка.
         """
-        DIRECTIONS = super()._DIRECTIONS
+        DIRECTIONS = super().DIRECTIONS
         if player_turn == DIRECTIONS['up']:
             if self.direction == DIRECTIONS['up']:
                 self.i, self.j = MovingObjects.move_up(self.i, self.j, 1)
@@ -197,14 +199,22 @@ class Tank(MovingObjects):
 
 
 class CannonBall(MovingObjects):
-    def __init__(self, head, visibility=True):
-        super().__init__(head.i, head.j, head.direction)
+    list_with_balls = []
+
+    def __init__(self, visibility=True):
+        super().__init__()
         self.name = 'cannon_ball'
         self.visibility = visibility
 
+    @classmethod
+    def throw_garbage(cls):
+        for ball in cls.list_with_balls:
+            if not ball.visibility:
+                cls.list_with_balls.remove(ball)
+
     def shoot(self, head):
         self.direction = cur_direct = head.direction
-        directions = MovingObjects._DIRECTIONS
+        directions = MovingObjects.DIRECTIONS
         i = j = int()
 
         if cur_direct == directions['up']:
@@ -217,22 +227,19 @@ class CannonBall(MovingObjects):
             i, j = MovingObjects.move_left(head.i, head.j, 1)
 
         self.i, self.j = MovingObjects.deduction_ring(i, j)
-        self.visibility = True
+        CannonBall.list_with_balls.append(self)
 
     def collision(self, map_obj):
         if 0 <= self.i < map_obj.width and \
-           0 <= self.j < map_obj.length:
-            if map_obj.map[self.i][self.j] != 0:
+                0 <= self.j < map_obj.length:
+            if map_obj.map[self.i][self.j] != MapFeatures.values_of_matrix_elem['map'] and \
+               map_obj.map[self.i][self.j] != MapFeatures.values_of_matrix_elem['cannon_ball']:
                 self.visibility = False
         else:
             self.visibility = False
 
-    def throw_out_garbage(self):
-        if not self.visibility:
-            del self
-
     def simplest_move(self):
-        directions = MovingObjects._DIRECTIONS
+        directions = MovingObjects.DIRECTIONS
         i = j = int()
         if self.direction == directions['right']:
             i, j = MovingObjects.move_right(self.i, self.j)
@@ -247,16 +254,17 @@ class CannonBall(MovingObjects):
 
 
 def render(rendering_obj=None, menu=False) -> None:
-    if rendering_obj is None:
-        rendering_obj = []
+    MENU = '\n\t\tТАНЧИК(И)\n' + \
+           'Управление в игре осуществляется клавишами WASD,\n' + \
+           'Для выхода из игры введите q\n' + \
+           'Для того, чтобы начать, нажмите Enter\n'
+    PIXEL_SIZE = 2
 
     def clear_console() -> None:
         """
             Очищает окно для начала отрисовки следующего кадра.
         """
         os.system('cls')
-
-    pixel_size = 2
 
     if menu:
         rendering_obj = MENU
@@ -265,7 +273,7 @@ def render(rendering_obj=None, menu=False) -> None:
 
     if isinstance(rendering_obj, list):
         def colorize(color_obj) -> None:
-            nonlocal pixel_size
+            nonlocal PIXEL_SIZE
             """
                 Принимает в качестве аргумента объект,
                 после чего выводит в консоль пиксель
@@ -276,14 +284,27 @@ def render(rendering_obj=None, menu=False) -> None:
                 2 - 'снаряд' - красный
             """
             if isinstance(color_obj, list):
-                cprint(' ' * pixel_size * LENGTH, on_color='on_white', sep='', end='\n')
+                cprint(' ' * PIXEL_SIZE * MapFeatures.length,
+                       on_color='on_white',
+                       sep='',
+                       end='\n')
             elif isinstance(color_obj, int):
-                if color_obj == 0:
-                    cprint(' ' * pixel_size, on_color='on_white', sep='', end='')
-                elif color_obj == 1:
-                    cprint(' ' * pixel_size, on_color='on_blue', sep='', end='')
-                elif color_obj == 2:
-                    cprint(' ' * pixel_size, on_color='on_red', sep='', end='')
+                if color_obj == MapFeatures.values_of_matrix_elem['map']:
+                    cprint(' ' * PIXEL_SIZE,
+                           on_color='on_white',
+                           sep='',
+                           end='')
+                elif color_obj == MapFeatures.values_of_matrix_elem['tank']:
+                    cprint(' ' * PIXEL_SIZE,
+                           on_color='on_blue',
+                           sep='',
+                           end='')
+                elif color_obj == MapFeatures.values_of_matrix_elem['cannon_ball']:
+                    cprint(' ' * PIXEL_SIZE,
+                           on_color='on_red',
+                           sep='',
+                           end='')
+
         """
             Принимает в качестве аргумента объект для отрисовки
             и выводит (отрисовывает) его в консоль в соответствии с цветом пикселя,
@@ -294,7 +315,7 @@ def render(rendering_obj=None, menu=False) -> None:
             2 - 'снаряд' - красный
         """
         for row in rendering_obj:
-            if row.count(0) == LENGTH:
+            if row.count(0) == MapFeatures.length:
                 colorize(row)
                 continue
             for column in row:
@@ -308,6 +329,7 @@ def render(rendering_obj=None, menu=False) -> None:
 
 class MyThread(Thread):
     """A threading example"""
+
     def __init__(self, name):
         """Инициализация потока"""
         Thread.__init__(self)
@@ -319,20 +341,23 @@ class MyThread(Thread):
         """Запуск потока"""
         if self.name == 'output':
             game_map = Map()
-            tank = Tank(START_HEAD_POS)
-            cannon_ball = CannonBall(tank, visibility=False)
+            tank = Tank()
 
             render(menu=True)
             input()
 
             while MyThread.my_turn != 'q':
+                balls_list = getattr(CannonBall, 'list_with_balls')
                 if MyThread.my_turn != ' ':
                     tank.move_head(MyThread.my_turn)
-                    cannon_ball.simplest_move()
+                    for cannon_ball in balls_list:
+                        cannon_ball.simplest_move()
                 else:
-                    cannon_ball.shoot(tank)
-                cannon_ball.collision(game_map)
-                game_map.display_obj(tank, cannon_ball)
+                    CannonBall().shoot(tank)
+                for cannon_ball in balls_list:
+                    cannon_ball.collision(game_map)
+                game_map.display_obj(tank, *balls_list)
+                CannonBall.throw_garbage()
                 render(game_map.map)
                 MyThread.my_turn = str()
                 time.sleep(0.5)
