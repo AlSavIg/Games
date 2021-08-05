@@ -5,8 +5,15 @@ from termcolor import cprint
 from threading import Thread
 from pynput import keyboard
 
-LENGTH = 20
-WIDTH = 20
+LENGTH = 10
+WIDTH = 10
+START_HEAD_POS = {'i': 1,
+                  'j': 3,
+                  'direction': 'd'}
+MENU = '\n\t\tТАНЧИК(И)\n' + \
+       'Управление в игре осуществляется клавишами WASD,\n' + \
+       'Для выхода из игры введите q\n' + \
+       'Для того, чтобы начать, нажмите Enter\n'
 
 
 class MapFeatures(metaclass=ABCMeta):
@@ -213,75 +220,57 @@ class CannonBall(MovingObjects):
         self.visibility = visibility
 
 
-def control_signal() -> str:
-    """
-        Ожидает нажатия игроком управляющих клавиш.
-        После нажатия возвращает символ, введенный игроком.
-    """
-    signal = input('Движение осуществляется на клавиши W A S D:\n' +
-                   'Ваш ход: ')
-    return signal
+def render(rendering_obj=None, menu=False) -> None:
+    if rendering_obj is None:
+        rendering_obj = []
 
+    def clear_console() -> None:
+        """
+            Очищает окно для начала отрисовки следующего кадра.
+        """
+        os.system('cls')
 
-def print_menu() -> None:
-    """
-        Выводит на экран меню, ожидая нажатия Enter.
-    """
-    print('\n\t\t\t\tТАНЧИК(И)\n' +
-          'Управление в игре осуществляется клавишами WASD,\n' +
-          # 'после ввода которых необходимо подтвердить ход нажатием Enter\n' +
-          # 'Для выхода из игры введите quit и нажмите Enter\n' +
-          'Для выхода из игры введите q\n' +
-          'Для того, чтобы начать, нажмите Enter\n', end='')
-    input()
-
-
-def render(playing_field: tuple) -> None:
     pixel_size = 2
 
-    def colorize(color: int) -> None:
-        nonlocal pixel_size
+    if menu:
+        rendering_obj = MENU
+
+    clear_console()
+
+    if isinstance(rendering_obj, list):
+        def colorize(color: int) -> None:
+            nonlocal pixel_size
+            """
+                Принимает в качестве аргумента число,
+                после чего выводит в консоль пиксель
+                определенного цвета, следуя следующей схеме:
+                0 - 'поле' - белый
+                1 - 'танк' - синий
+                2 - 'снаряд' - красный
+            """
+            if color == 0:
+                cprint(' ' * pixel_size, on_color='on_white', sep='', end='')
+            elif color == 1:
+                cprint(' ' * pixel_size, on_color='on_blue', sep='', end='')
+            elif color == 2:
+                cprint(' ' * pixel_size, on_color='on_red', sep='', end='')
         """
-            Принимает в качестве аргумента число,
-            после чего выводит в консоль пиксель
-            определенного цвета, следуя следующей схеме:
+            Принимает в качестве аргумента объект для отрисовки
+            и выводит (отрисовывает) его в консоль в соответствии с цветом пикселя,
+            который задается цифрой, являющейся элементом матрицы,
+            где соблюдается следующее соответствие:
             0 - 'поле' - белый
             1 - 'танк' - синий
             2 - 'снаряд' - красный
         """
-        if color == 0:
-            cprint(' ' * pixel_size, on_color='on_white', sep='', end='')
-        elif color == 1:
-            cprint(' ' * pixel_size, on_color='on_blue', sep='', end='')
-        elif color == 2:
-            cprint(' ' * pixel_size, on_color='on_red', sep='', end='')
+        for row in rendering_obj:
+            for column in row:
+                colorize(column)
+            print()
+        print('\n')
 
-    """
-        Принимает в качестве аргумента кортеж - матрицу (игровое поле)
-        и выводит (отрисовывает) его в консоль в соответствии с цветом пикселя,
-        который задается цифрой, являющейся элементом матрицы,
-        где соблюдается следующее соответствие:
-        0 - 'поле' - белый
-        1 - 'танк' - синий
-        2 - 'снаряд' - красный
-    """
-    for row in playing_field:
-        for column in row:
-            colorize(column)
-        print()
-    print('\n')
-
-
-def clear_console() -> None:
-    """
-        Очищает окно для начала отрисовки следующего кадра.
-    """
-    os.system('cls')
-
-
-START_HEAD_POS = {'i': 1,
-                  'j': 3,
-                  'direction': 'd'}
+    elif isinstance(rendering_obj, str):
+        cprint(str.upper(rendering_obj), on_color='on_green', color='blue')
 
 
 class MyThread(Thread):
@@ -295,64 +284,57 @@ class MyThread(Thread):
 
     def run(self):
         """Запуск потока"""
-        def make_turn(map_, tank_, cannon_ball_, flag=True):
-            if not flag:
-                print_menu()
-            clear_console()
-            if MyThread.my_turn != ' ':
-                tank_.move_head(MyThread.my_turn)
-                cannon_ball_.simplest_move()
-            else:
-                cannon_ball_.shoot(tank_)
-            map_.display_obj(tank_, cannon_ball_)
-            render(map_.map)
-            MyThread.my_turn = str()
-            time.sleep(0.2)
-
-        def on_press(key: str) -> bool:
-            """
-                Внутри этой функции прописан код,
-                который срабатывает всякий раз при нажатии определенной клавиши.
-            """
-            if key == keyboard.KeyCode(char='q'):
-                MyThread.my_turn = 'q'
-                return False
-            elif key == keyboard.KeyCode(char='w'):
-                MyThread.my_turn = 'w'
-            elif key == keyboard.KeyCode(char='a'):
-                MyThread.my_turn = 'a'
-            elif key == keyboard.KeyCode(char='s'):
-                MyThread.my_turn = 's'
-            elif key == keyboard.KeyCode(char='d'):
-                MyThread.my_turn = 'd'
-            elif key == keyboard.Key.space:
-                MyThread.my_turn = ' '
-
-        def start_read() -> None:
-            """Запускает процесс считывания с клавиатуры действий игрока в реальном времени."""
-            with keyboard.Listener(on_press=on_press) as listener:
-                listener.join()
-
         if self.name == 'output':
             game_map = Map()
             tank = Tank(START_HEAD_POS)
             cannon_ball = CannonBall(tank, visibility=False)
 
-            make_turn(game_map, tank, cannon_ball, False)
+            render(menu=True)
+            input()
+
             while MyThread.my_turn != 'q':
-                make_turn(game_map, tank, cannon_ball)
+                if MyThread.my_turn != ' ':
+                    tank.move_head(MyThread.my_turn)
+                    cannon_ball.simplest_move()
+                else:
+                    cannon_ball.shoot(tank)
+                game_map.display_obj(tank, cannon_ball)
+                render(game_map.map)
+                MyThread.my_turn = str()
+                time.sleep(0.5)
             else:
-                clear_console()
-                print('GAME OVER')
+                render('game over')
 
         elif self.name == 'input':
+            def on_press(key: str) -> bool:
+                """
+                    Внутри этой функции прописан код,
+                    который срабатывает всякий раз при нажатии определенной клавиши.
+                """
+                if key == keyboard.KeyCode(char='q'):
+                    MyThread.my_turn = 'q'
+                    return False
+                elif key == keyboard.KeyCode(char='w'):
+                    MyThread.my_turn = 'w'
+                elif key == keyboard.KeyCode(char='a'):
+                    MyThread.my_turn = 'a'
+                elif key == keyboard.KeyCode(char='s'):
+                    MyThread.my_turn = 's'
+                elif key == keyboard.KeyCode(char='d'):
+                    MyThread.my_turn = 'd'
+                elif key == keyboard.Key.space:
+                    MyThread.my_turn = ' '
+
+            def start_read() -> None:
+                """Запускает процесс считывания с клавиатуры действий игрока в реальном времени."""
+                with keyboard.Listener(on_press=on_press) as listener:
+                    listener.join()
+
             start_read()
 
 
 def create_threads():
-    """
-    Создаем группу потоков
-    """
+    """Создаем группу потоков"""
     input_thread = MyThread('input')
     output_thread = MyThread('output')
     input_thread.start()
