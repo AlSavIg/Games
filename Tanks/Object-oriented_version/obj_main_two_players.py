@@ -114,10 +114,10 @@ class Tank(MovingObjects):
     START_HEAD_POS_PLAYER_2 = {'i': MapFeatures.width - 2,
                                'j': MapFeatures.length - 4,
                                'direction': 'a'}
-    
+
     def __init__(self, player):
         if player == 1:
-            super().__init__(player, 
+            super().__init__(player,
                              Tank.START_HEAD_POS_PLAYER_1['i'],
                              Tank.START_HEAD_POS_PLAYER_1['j'],
                              Tank.START_HEAD_POS_PLAYER_1['direction'])
@@ -249,12 +249,19 @@ class CannonBall(MovingObjects):
         self.i, self.j = MovingObjects.deduction_ring(i, j)
         CannonBall.list_with_balls.append(self)
 
-    def collision(self, map_obj):
+    first_p_hits = 0
+    second_p_hits = 0
+
+    def collision(self, map_obj, tank_first, tank_second):
         if 0 <= self.i < map_obj.width and \
                 0 <= self.j < map_obj.length:
             if map_obj.map[self.i][self.j] != MapFeatures.values_of_matrix_elem['map'] and \
-               map_obj.map[self.i][self.j] != MapFeatures.values_of_matrix_elem['cannon_ball']:
+                    map_obj.map[self.i][self.j] != MapFeatures.values_of_matrix_elem['cannon_ball']:
                 self.visibility = False
+                if self.player != tank_first.player:
+                    CannonBall.second_p_hits += 1
+                elif self.player != tank_second.player:
+                    CannonBall.first_p_hits += 1
         else:
             self.visibility = False
 
@@ -363,11 +370,15 @@ class MyThread(Thread):
             game_map = Map()
             tank_first = Tank(1)
             tank_second = Tank(2)
-            
+
+            end_of_match = 2
+            players_hits = 'First player: {0}\n\nSecond player: {1}\n'.format(CannonBall.first_p_hits,
+                                                                              CannonBall.second_p_hits)
             render(menu=True)
             input()
 
-            while MyThread.f_st_player_turn != 'q' and MyThread.s_nd_player_turn != 'q':
+            while MyThread.f_st_player_turn != 'q' and MyThread.s_nd_player_turn != 'q' and \
+                    CannonBall.first_p_hits < end_of_match and CannonBall.second_p_hits < end_of_match:
 
                 balls_list = getattr(CannonBall, 'list_with_balls')
 
@@ -386,19 +397,32 @@ class MyThread(Thread):
                     CannonBall(2).shoot(tank_second)
 
                 for cannon_ball in balls_list:
-                    cannon_ball.collision(game_map)
+                    cannon_ball.collision(game_map, tank_first, tank_second)
 
                 game_map.display_obj(tank_first, tank_second, *balls_list)
 
                 CannonBall.throw_garbage()
 
                 render(game_map.map)
+                players_hits = 'First player: {0}\n\nSecond player: {1}\n'.format(CannonBall.first_p_hits,
+                                                                                  CannonBall.second_p_hits)
+                print(players_hits)
 
                 MyThread.f_st_player_turn = MyThread.s_nd_player_turn = str()
 
                 time.sleep(0.5)
             else:
-                render('game over')
+                keyboard.Controller().press('q')
+                keyboard.Controller().release('q')
+
+                render('game over' + '\n\nscore:')
+                if CannonBall.first_p_hits > CannonBall.second_p_hits:
+                    print('\nPlayer 1 wins!\n')
+                elif CannonBall.first_p_hits < CannonBall.second_p_hits:
+                    print('\nPlayer 2 wins!\n')
+                else:
+                    print('\nDraw!\n')
+                print(players_hits)
 
         elif self.name == 'input':
             def on_press(key: str) -> bool:
@@ -420,7 +444,7 @@ class MyThread(Thread):
                 elif key == keyboard.Key.space:
                     MyThread.f_st_player_turn = ' '
 
-                if key == keyboard.KeyCode(char='q') or key == keyboard.KeyCode(char='й'):
+                if key == keyboard.KeyCode(char='p') or key == keyboard.KeyCode(char='з'):
                     MyThread.s_nd_player_turn = 'q'
                     return False
                 elif key == keyboard.Key.up:
